@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true, // Consider setting to false initially if you have many null issues, then enable
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,    // Consider setting to true for better type safety, address errors as they come
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false
+  },
+  "include": [
+    "src/**/*" // <--- CORRECTED: Include all .ts files in the src directory and its subdirectories
+  ],
+  "exclude": [    // <--- ADDED/RECOMMENDED: Exclude node_modules and dist
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts" // Exclude test files from main build
+  ]
+}

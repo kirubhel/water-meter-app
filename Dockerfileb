@@ -1,0 +1,20 @@
+# Use an official Node.js runtime as the base image
+FROM node:20
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock) to the working directory
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --production
+
+# Copy the built dist folder to the working directory
+COPY ./ ./dist
+
+# Expose the port your app runs on
+EXPOSE 7075
+
+# Define the command to run your application
+CMD ["node", "dist/main.js"]

@@ -1,0 +1,33 @@
+.water-loader {
+    width: 50px;
+    height: 50px;
+    position: relative;
+  }
+  
+  .water-drop {
+    width: 20px;
+    height: 20px;
+    background: #3498db;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: water-drop 1.5s infinite ease-in-out;
+  }
+  
+  @keyframes water-drop {
+    0% {
+      bottom: 0;
+      opacity: 1;
+    }
+    50% {
+      bottom: 30px;
+      opacity: 0.6;
+    }
+    100% {
+      bottom: 0;
+      opacity: 1;
+    }
+  }
+  

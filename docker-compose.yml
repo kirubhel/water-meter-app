@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./water-meter-backend
+    ports:
+      - "7075:7075"
+    environment:
+      - NODE_ENV=production
+      - PORT=7075
+      - DB_SERVER=196.190.251.194
+      - DB_PORT=1433
+      - DB_USER=sa
+      - DB_PASSWORD=DAFTech@2024
+      - DB_NAME=WaterMeter
+      - DB_OPTIONS_ENCRYPT=false
+      - DB_OPTIONS_TRUST_SERVER_CERTIFICATE=true
+    restart: unless-stopped
+    networks:
+      - water-meter-network
+
+  frontend:
+    build: ./water-meter-frontend
+    ports:
+      - "7072:7072"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - water-meter-network
+
+networks:
+  water-meter-network:
+    driver: bridge 

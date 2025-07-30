@@ -1,0 +1,139 @@
+<div class="min-h-screen bg-gradient-to-br from-cyan-50 to-teal-100 py-8 relative overflow-hidden">
+  <div class="wave-bg"></div>
+  <div class="container mx-auto p-8 bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl">
+    <!-- Page Title -->
+    <div class="relative mb-12">
+      <button
+        (click)="goBack()"
+        class="absolute left-0 top-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-600 transition btn-ripple"
+        aria-label="Go back to dashboard"
+      >
+        ← Go Back
+      </button>
+      <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 mb-8 text-center tracking-wide animate-title">
+        💧 Water Meter Details
+      </h1>
+      <span class="block text-center text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600">
+        METER ID - {{ MID }}
+      </span>
+      <div class="absolute -bottom-4 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-teal-500 animate-wave"></div>
+    </div>
+
+    <!-- Loading Spinner for Entire Component -->
+    <div *ngIf="meterData.length === 0 && !errorMessage" class="flex justify-center items-center h-64">
+      <div class="spinner"></div>
+    </div>
+    <div *ngIf="errorMessage" class="text-center text-red-600 font-semibold p-4">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Date Picker -->
+    <div *ngIf="meterData.length > 0" class="flex gap-8 mb-10 justify-center">
+      <div class="relative group">
+        <input
+          type="date"
+          class="p-5 w-64 border-2 border-cyan-200 bg-white/90 text-cyan-700 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-200 shadow-lg transition-all duration-300 hover:shadow-cyan-200/30 animate-date-picker"
+          (change)="fetchData($event.target)"
+          aria-label="Select date for meter data"
+        />
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="meterData.length > 0" class="overflow-hidden rounded-2xl shadow-2xl mb-12">
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr class="bg-gradient-to-r from-cyan-600 to-blue-600">
+            <th class="p-5 text-left text-lg font-semibold text-white">Timestamp</th>
+            <th class="p-5 text-left text-lg font-semibold text-white">MID</th>
+            <th class="p-5 text-left text-lg font-semibold text-white">Status</th>
+            <th class="p-5 text-left text-lg font-semibold text-white">Battery (mV)</th>
+            <th class="p-5 text-left text-lg font-semibold text-white">Network (%)</th>
+            <th class="p-5 text-left text-lg font-semibold text-white">Consumption (L)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of paginatedData; let i = index" class="border-b border-cyan-100 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-teal-50 transition-all duration-300 animate-slide-in" [style.animationDelay]="i * 0.1 + 's'">
+            <td class="p-5 text-cyan-800">{{ row.timestamp | date:'dd MMM yyyy - HH:mm' }}</td>
+            <td class="p-5 text-cyan-800 font-medium">{{ row.MID }}</td>
+            <td class="p-5">
+              <span
+                class="px-4 py-2 rounded-full text-sm font-medium shadow-sm"
+                [ngClass]="{
+                  'bg-green-100 text-green-700': row.status_code === 'OK' || row.status_code === 'Active',
+                  'bg-yellow-100 text-yellow-700': row.status_code === 'Warning' || row.status_code === 'Maintenance',
+                  'bg-red-100 text-red-700': row.status_code === 'Error' || row.status_code === 'Offline',
+                  'bg-gray-100 text-gray-700': !['OK', 'Active', 'Warning', 'Maintenance', 'Error', 'Offline'].includes(row.status_code)
+                }"
+              >
+                {{ row.status_code }}
+              </span>
+            </td>
+            <td class="p-5 text-cyan-800">{{ row.battery_vol }}</td>
+            <td class="p-5">
+              <div class="w-full bg-gray-100 rounded-full h-3">
+                <div
+                  class="bg-gradient-to-r from-cyan-400 to-blue-500 h-3 rounded-full transition-all duration-500"
+                  [style.width]="row.network + '%'"
+                ></div>
+              </div>
+            </td>
+            <td class="p-5 text-cyan-800">{{ row.WH }} L</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="flex justify-between items-center mt-4 p-6">
+        <button
+          (click)="prevPage()"
+          [disabled]="currentPage === 1"
+          class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden btn-ripple"
+          aria-label="Previous page"
+        >
+          ⬅️ Previous
+        </button>
+        <span class="text-lg font-semibold">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage * itemsPerPage >= meterData.length"
+          class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden btn-ripple"
+          aria-label="Next page"
+        >
+          Next ➡️
+        </button>
+      </div>
+    </div>
+
+    <!-- Chart Section with Spinner and Fallback -->
+    <div *ngIf="meterData.length > 0" class="rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-r from-cyan-50 to-teal-50 p-1 animate-fade-in max-w-4xl mx-auto">
+      <div class="bg-white rounded-xl p-6 relative">
+        <div *ngIf="isChartLoading" class="absolute inset-0 flex justify-center items-center">
+          <div class="spinner"></div>
+        </div>
+        <div *ngIf="chartError" class="text-center text-red-600 font-semibold p-4">
+          {{ chartError }}
+        </div>
+        <div class="chart-container">
+          <canvas id="detailsChart" class="w-full h-80 md:h-96" aria-label="Water usage chart for meter"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="py-8 px-6 mt-12 bg-gradient-to-r from-cyan-600 to-blue-600">
+  <div class="container mx-auto text-center text-white">
+    <p class="text-lg">
+      Powered by
+      <a
+        href="https://www.daftechsocialictsolution.com"
+        target="_blank"
+        class="font-semibold hover:text-cyan-200 transition-colors duration-300 border-b-2 border-transparent hover:border-cyan-200"
+      >
+        DAFTech Social ICT Solution
+      </a>
+    </p>
+  </div>
+</footer>
